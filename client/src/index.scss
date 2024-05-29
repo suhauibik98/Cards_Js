@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+    --primary: #1e90ff;
+    --secondary: #ff1493;
+    --Font :  #ffffff;
+     --bg:#f5f7f8;
+    
+}
+
+*{
+    color: black;
+}
+
+.parent {  display: grid;
+    grid-template-columns: 0.5fr 3fr 0.5fr;
+    grid-template-rows: 0.2fr 1.8fr;
+    gap: 12px 12px;
+    grid-auto-flow: row;
+    grid-template-areas:
+      "nav nav nav"
+      "side side1 side2";
+  }
+  
+  .nav { grid-area: nav; }
+  
+  .side { grid-area: side; }
+  
+  .side1 {  display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 0.1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    justify-items: stretch;
+    align-items: stretch;
+    grid-template-areas:
+      "ch ch1 ch2";
+    justify-self: stretch;
+    align-self: stretch;
+    grid-area: side1;
+  }
+  
+  .ch { grid-area: ch; }
+  
+  .ch1 { grid-area: ch1; }
+  
+  .ch2 { grid-area: ch2; }
+  
+  .side2 { grid-area: side2; }
+  
+  
+    
