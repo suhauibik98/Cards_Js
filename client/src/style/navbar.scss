@@ -1,0 +1,23 @@
+
+
+.Field{
+    border: 1px solid red;
+}
+nav{
+    position:sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.toggle{
+    background-color: rgba(53, 53, 53, 0.598);
+    backdrop-filter: blur(50px);
+    position: fixed;
+    width: 150px;
+    right: 0;
+    top: 0;
+    text-align: center;
+    height: 100%;
+    z-index: 10;
+    // border-radius: 0 50px 0 50px;
+}

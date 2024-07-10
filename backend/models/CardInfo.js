@@ -12,7 +12,12 @@ const CardsInfo = mongosse.Schema({
   phone:{
     type: String,
     required:true,
+  },
+  location:{
+    type: String,
+    required:true,
   }
+
 },{timestamps : true});
 
 const CardsInfoModel = mongosse.model("CardsInfo", CardsInfo);

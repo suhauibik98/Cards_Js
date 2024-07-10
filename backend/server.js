@@ -4,9 +4,6 @@ const cors = require("cors");
 const connectdb = require("./db/connectdb");
 require("dotenv").config({ path: "./.env" });
 const PORT = process.env.PORT;
-const User = require("./models/User");
-const CardsInfoModel = require("./models/CardInfo");
-const bcrypt = require("bcrypt");
 app.use(express.json());
 app.use(cors());
 require("colors")
@@ -18,34 +15,9 @@ const userRouter = require("./routers/userRouter")
 app.use("/api/auth" , userRouter)
 
 
+const cardsRouter = require("./routers/cardsRouter")
+app.use("/api/cards" , cardsRouter)
 
-
-app.post("/cardForm" , async (req,res)=>{
-    try {
-    const {title , description , phone} = req.body
-    
-    if (!title || !description || !phone) {
-        return res.status(400).json({ mesg: "please fill all the fields" });
-      }
-
-const cardAdd = new CardsInfoModel({title,description,phone})
-await cardAdd.save()
-res.status(201).json(cardAdd)
- 
-    }
-    catch(err){console.log(err)}
-})
-
-app.get("/all-card", async (req,res)=>{
-    try{
-        const all = await CardsInfoModel.find();
-          res.status(200).json(all)
-          // console.log(all);
-
-    }
-    catch(err){console.log(err)}
-    
-})
 
 
 
@@ -53,6 +25,39 @@ app.listen(PORT, () => {
   connectdb();
   console.log(`server work >>> PORT:${PORT}`);
 });
+
+
+
+
+
+// app.get("/all-card", async (req,res)=>{
+//     try{
+//         const all = await CardsInfoModel.find();
+//           res.status(200).json(all)
+//           // console.log(all);
+
+//     }
+//     catch(err){console.log(err)}
+    
+// })
+
+// app.post("/cardForm" , async (req,res)=>{
+  //     try {
+  //     const {title , description , phone} = req.body
+      
+  //     if (!title || !description || !phone) {
+  //         return res.status(400).json({ mesg: "please fill all the fields" });
+  //       }
+  
+  // const cardAdd = new CardsInfoModel({title,description,phone})
+  // await cardAdd.save()
+  // res.status(201).json(cardAdd)
+   
+  //     }
+  //     catch(err){console.log(err)}
+  // })
+
+
 
 
 // app.post("/signup", async (req, res) => {

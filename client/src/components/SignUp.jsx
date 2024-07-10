@@ -1,122 +1,104 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import Spinner from "./Spinner";
 
 const SignUp = () => {
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-
-  const [nameError, setNameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [phoneError, setPhoneError] = useState("");
-
+  const [spin , setSpin] = useState(false)
   const nav = useNavigate();
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-
-    // Reset error states
-    setNameError("");
-    setEmailError("");
-    setPasswordError("");
-    setPhoneError("");
-
-    let isValid = true;
-
-    if (!name) {
-      setNameError("Please fill this field");
-      isValid = false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      setEmailError("Please fill this field");
-      isValid = false;
-    } else if (!emailRegex.test(email)) {
-      setEmailError("Please enter a valid email");
-      isValid = false;
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!password) {
-      setPasswordError("Please fill this field");
-      isValid = false;
-    } else if (!passwordRegex.test(password)) {
-      setPasswordError("Password must be at least 8 characters long, include uppercase, lowercase, number, and special character");
-      isValid = false;
-    }
-
-    const phoneRegex = /^\d{10}$/;
-    if (!phone) {
-      setPhoneError("Please fill this field");
-      isValid = false;
-    } else if (!phoneRegex.test(phone)) {
-      setPhoneError("Please enter a valid phone number (10 digits)");
-      isValid = false;
-    }
-
-    if (!isValid) {
-      return; // Do not submit if any field is invalid
-    }
-
-    const UserSignUp = {
-      name,
-      email,
-      password,
-      phone,
-    };
-
-    try {
-      const res = await axios.post("http://192.168.0.100:5000/api/auth/signup", UserSignUp);
-
-      if (res.status === 201) {
-        nav("/login");
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+      phone: "",
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Please fill this field"),
+      email: Yup.string()
+        .email("Please enter a valid email")
+        .required("Please fill this field"),
+      password: Yup.string()
+        .required("Please fill this field")
+        .matches(
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+          "Password must be at least 8 characters long, include uppercase, lowercase, number, and special character"
+        ),
+      phone: Yup.string()
+        .required("Please fill this field")
+        .matches(/^\d{10}$/, "Please enter a valid phone number (10 digits)"),
+    }),
+    onSubmit: async (values, { setSubmitting, setErrors }) => {
+      setSpin(true)
+      try {
+        const res = await axios.post(
+          "http://10.10.30.19:5000/api/auth/signup",
+          values
+        );
+        if (res.status === 201) {
+          nav("/login");
+        }
+      } catch (e) {
+        const errorData = e.response?.data?.Err;
+        if (errorData) {
+          // Map server validation errors to form fields
+          const fieldErrors = {};
+          for (const [field, message] of Object.entries(errorData)) {
+            fieldErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+          }
+          setErrors(fieldErrors);
+        } else {
+          // Handle other types of errors (e.g., network errors)
+          console.log(e);
+          if(e.response.data.message){
+            setErrors({general:e.response.data.message})
+          }
+          else
+          setErrors({ general: "An unexpected error occurred. Please try again." });
+        }
+      } finally {
+        setSubmitting(false);
+        setSpin(false)
       }
-    } catch (e) {
-        // console.log(e);
-    //   alert(e.response.data.mesg);
-    //   console.log(e);
-
-let v = Object.keys(e.response.data.Err).join(",")
-      if(e.response.data.Err){
-           alert(`${v} already exists`)
-    }
-    }
-  };
+    },
+  });
 
   return (
-    <>
-      <section className="h-full">
-        <div className="flex items-center justify-center h-screen w-full px-5 sm:px-0">
-          <div className="flex bg-white rounded-lg shadow-lg border overflow-hidden max-w-sm lg:max-w-4xl w-full">
-            <div
-              className="hidden md:block lg:w-1/2 bg-cover bg-blue-700"
-              style={{
-                backgroundImage: `url(https://www.tailwindtap.com//assets/components/form/userlogin/login_tailwindtap.jpg)`,
-              }}
-            ></div>
-            <div className="w-full p-8 lg:w-1/2">
-              <p className="text-xl text-gray-600 text-center">
-                Create an account!
-              </p>
+    <section className="h-full">
+      {spin && <Spinner/>}
+      <div className="flex items-center justify-center h-screen w-full px-5 sm:px-0">
+        <div className="flex bg-white rounded-lg shadow-lg border overflow-hidden max-w-sm lg:max-w-4xl w-full">
+          <div
+            className="hidden md:block lg:w-1/2 bg-cover bg-blue-700"
+            style={{
+              backgroundImage: `url(https://www.tailwindtap.com//assets/components/form/userlogin/login_tailwindtap.jpg)`,
+            }}
+          ></div>
+          <div className="w-full p-8 lg:w-1/2">
+            <p className="text-xl text-gray-600 text-center">
+              Create an account!
+            </p>
+            <form onSubmit={formik.handleSubmit}>
               <div className="mt-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">
                   Username
                 </label>
                 <input
                   className={`text-gray-700 border ${
-                    nameError ? "border-red-500" : "border-gray-300"
+                    formik.touched.name && formik.errors.name
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded py-2 px-4 block w-full focus:outline-2 focus:outline-blue-700`}
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
+                  {...formik.getFieldProps("name")}
                 />
-                {nameError && (
-                  <p className="text-red-500 text-xs mt-1">{nameError}</p>
+                {formik.touched.name && formik.errors.name && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.name}
+                  </p>
                 )}
               </div>
               <div className="mt-4">
@@ -125,15 +107,17 @@ let v = Object.keys(e.response.data.Err).join(",")
                 </label>
                 <input
                   className={`text-gray-700 border ${
-                    emailError ? "border-red-500" : "border-gray-300"
+                    formik.touched.email && formik.errors.email
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded py-2 px-4 block w-full focus:outline-2 focus:outline-blue-700`}
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...formik.getFieldProps("email")}
                 />
-                {emailError && (
-                  <p className="text-red-500 text-xs mt-1">{emailError}</p>
+                {formik.touched.email && formik.errors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.email}
+                  </p>
                 )}
               </div>
               <div className="mt-4">
@@ -142,15 +126,17 @@ let v = Object.keys(e.response.data.Err).join(",")
                 </label>
                 <input
                   className={`text-gray-700 border ${
-                    phoneError ? "border-red-500" : "border-gray-300"
+                    formik.touched.phone && formik.errors.phone
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded py-2 px-4 block w-full focus:outline-2 focus:outline-blue-700`}
                   type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
+                  {...formik.getFieldProps("phone")}
                 />
-                {phoneError && (
-                  <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+                {formik.touched.phone && formik.errors.phone && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.phone}
+                  </p>
                 )}
               </div>
               <div className="mt-4 flex flex-col justify-between">
@@ -161,40 +147,47 @@ let v = Object.keys(e.response.data.Err).join(",")
                 </div>
                 <input
                   className={`text-gray-700 border ${
-                    passwordError ? "border-red-500" : "border-gray-300"
+                    formik.touched.password && formik.errors.password
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded py-2 px-4 block w-full focus:outline-2 focus:outline-blue-700`}
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...formik.getFieldProps("password")}
                 />
-                {passwordError && (
-                  <p className="text-red-500 text-xs mt-1">{passwordError}</p>
+                {formik.touched.password && formik.errors.password && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formik.errors.password}
+                  </p>
                 )}
               </div>
+              {formik.errors.general && (
+                <div className="text-red-500 text-xs mt-1">
+                  {formik.errors.general}
+                </div>
+              )}
               <div className="mt-8">
                 <button
-                  onClick={handleSignup}
+                  type="submit"
                   className="bg-blue-700 text-white font-bold py-2 px-4 w-full rounded hover:bg-blue-600"
+                  disabled={formik.isSubmitting}
                 >
                   Create an account
                 </button>
               </div>
-
-              <div className="mt-4 flex items-center w-full text-center">
-                <Link
-                  to="/login"
-                  className="text-xs text-gray-500 capitalize text-center w-full"
-                >
-                  Already have an account?
-                  <span className="text-blue-700"> Login</span>
-                </Link>
-              </div>
+            </form>
+            <div className="mt-4 flex items-center w-full text-center">
+              <Link
+                to="/login"
+                className="text-xs text-gray-500 capitalize text-center w-full"
+              >
+                Already have an account?
+                <span className="text-blue-700"> Login</span>
+              </Link>
             </div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 

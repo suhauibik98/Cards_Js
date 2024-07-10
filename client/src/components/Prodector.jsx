@@ -6,7 +6,6 @@ const Prodector = ({children}) => {
     const { userSlice } = useAppContext()
      const {token} = userSlice
 
-     console.log(userSlice);
      if(token)
         return children
     
